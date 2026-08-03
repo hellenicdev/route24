@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b0e14" />
+    <meta name="description" content="Route 24 — a browser-based realistic bus simulator." />
+    <link rel="icon" type="image/svg+xml" href="/route24/favicon.svg" />
+    <title>Route 24</title>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game-canvas" aria-label="Route 24 game view"></canvas>
+
+      <div id="loading-screen" role="status" aria-live="polite">
+        <div class="loading-inner">
+          <div class="loading-logo" aria-hidden="true">
+            <span class="loading-logo-badge">R</span>
+            <span class="loading-logo-text">ROUTE&nbsp;24</span>
+          </div>
+          <div class="loading-bar"><div id="loading-bar-fill"></div></div>
+          <div id="loading-status" class="loading-status">Starting…</div>
+        </div>
+      </div>
+
+      <div id="error-screen" class="hidden" role="alert">
+        <h1>Route 24 could not start</h1>
+        <p id="error-message"></p>
+        <p class="error-hint">
+          Try a modern browser with WebGL2 or WebGPU support (Chrome, Edge, Firefox, Safari 16.4+).
+        </p>
+      </div>
+
+      <div id="hud" class="hidden">
+        <div class="hud-top-right">
+          <div id="hud-stats" class="hud-stats">
+            <span id="hud-fps">-- fps</span>
+            <span id="hud-ms">-- ms</span>
+          </div>
+          <div class="hud-row">
+            <span id="hud-renderer" class="hud-chip">–</span>
+            <span id="hud-quality" class="hud-chip">–</span>
+          </div>
+        </div>
+        <button id="btn-settings" class="hud-button" type="button" aria-label="Graphics settings">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+            <path
+              d="M12 8.25a3.75 3.75 0 1 0 0 7.5 3.75 3.75 0 0 0 0-7.5Zm8.4 3.75c0-.51-.04-1-.12-1.48l2.02-1.58-2-3.46-2.38.96a8.9 8.9 0 0 0-2.56-1.49L15.1 2.4h-4l-.27 2.55a8.9 8.9 0 0 0-2.56 1.49l-2.37-.96-2 3.46 2.02 1.58c-.08.48-.13.97-.13 1.48s.05 1 .13 1.48l-2.02 1.58 2 3.46 2.37-.96a8.9 8.9 0 0 0 2.56 1.49L11.1 21.6h4l.27-2.55a8.9 8.9 0 0 0 2.56-1.49l2.37.96 2-3.46-2.02-1.58c.08-.48.12-.97.12-1.48Z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <div
+        id="settings-panel"
+        class="panel hidden"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+      >
+        <div class="panel-header">
+          <h2 id="settings-title">Graphics settings</h2>
+          <button
+            id="btn-settings-close"
+            class="panel-close"
+            type="button"
+            aria-label="Close settings"
+          >
+            ×
+          </button>
+        </div>
+        <div class="panel-body">
+          <label class="field">
+            <span class="field-label">Quality preset</span>
+            <select id="setting-quality"></select>
+          </label>
+          <label class="field">
+            <span class="field-label">Renderer</span>
+            <select id="setting-renderer">
+              <option value="auto">Auto (recommended)</option>
+              <option value="webgpu">WebGPU</option>
+              <option value="webgl2">WebGL 2</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label"
+              >Resolution scale <span id="setting-rescale-value">100%</span></span
+            >
+            <input id="setting-rescale" type="range" min="50" max="150" step="10" />
+          </label>
+          <label class="field field-check">
+            <input id="setting-vsync" type="checkbox" />
+            <span>VSync</span>
+          </label>
+          <label class="field field-check">
+            <input id="setting-showfps" type="checkbox" />
+            <span>Show frame stats</span>
+          </label>
+          <p id="settings-renderer-note" class="panel-note hidden">
+            Changing the renderer takes effect after a page reload.
+          </p>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
