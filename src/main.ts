@@ -8,6 +8,8 @@ import { Hud } from './ui/hud';
 import { SettingsPanel } from './ui/settingsPanel';
 import { byId } from './ui/dom';
 import { InputManager } from './core/input';
+import { DrivableBus } from './entities/drivableBus';
+import { DEFAULT_BUS_ID, getBusConfig } from './data/busConfig';
 
 async function main(): Promise<void> {
   const canvas = byId<HTMLCanvasElement>('game-canvas');
@@ -34,6 +36,7 @@ async function main(): Promise<void> {
       root: byId<HTMLDivElement>('hud'),
       fps: byId<HTMLSpanElement>('hud-fps'),
       ms: byId<HTMLSpanElement>('hud-ms'),
+      speed: byId<HTMLSpanElement>('hud-speed'),
       renderer: byId<HTMLSpanElement>('hud-renderer'),
       quality: byId<HTMLSpanElement>('hud-quality'),
     },
@@ -43,6 +46,12 @@ async function main(): Promise<void> {
   loading.setProgress(0.7);
   loading.setStatus('Compiling render pipeline…');
 
+  // Spawn the bus on the track ring, facing along the loop.
+  const bus = new DrivableBus(sceneHandle.scene, getBusConfig(DEFAULT_BUS_ID), 150, 0, 0);
+  const input = new InputManager();
+  input.attach();
+  input.attachPointer(canvas);
+
   const game = new Game({
     engine,
     rendererKind: kind,
@@ -50,15 +59,13 @@ async function main(): Promise<void> {
     settings,
     loading,
     hud,
+    input,
+    bus,
     onQualityChange: () => game.applySettings(),
   });
   hud.setRenderer(kind);
 
   new SettingsPanel({ settings, onChanged: () => game.applySettings() });
-  const input = new InputManager();
-  input.attach();
-  input.attachPointer(canvas);
-
   window.addEventListener('beforeunload', () => {
     input.detach();
     input.detachPointer(canvas);

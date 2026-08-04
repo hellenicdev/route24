@@ -5,6 +5,7 @@ export interface HudElements {
   root: HTMLElement;
   fps: HTMLElement;
   ms: HTMLElement;
+  speed: HTMLElement;
   renderer: HTMLElement;
   quality: HTMLElement;
 }
@@ -37,12 +38,13 @@ export class Hud {
   }
 
   /** Call once per rendered frame; DOM writes are throttled internally. */
-  frame(now: number): void {
+  frame(now: number, speedKph: number): void {
     if (now - this.lastWrite < 500) return;
     this.lastWrite = now;
     const fps = Math.round(this.engine.getFps());
     const ms = this.engine.getDeltaTime().toFixed(1);
     this.elements.fps.textContent = `${fps} fps`;
     this.elements.ms.textContent = `${ms} ms`;
+    this.elements.speed.textContent = `${Math.round(speedKph)} km/h`;
   }
 }

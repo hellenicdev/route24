@@ -1,4 +1,5 @@
 import type { AbstractEngine } from '@babylonjs/core/Engines/abstractEngine';
+import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import type { RendererKind } from '../render/engineFactory';
 import type { SceneHandle } from '../render/sceneFactory';
 import { RenderPipeline } from '../render/pipeline';
@@ -8,6 +9,8 @@ import { GameLoop } from '../core/loop';
 import type { SettingsManager } from '../core/settings';
 import type { LoadingScreen } from '../ui/loading';
 import type { Hud } from '../ui/hud';
+import type { DrivableBus } from '../entities/drivableBus';
+import type { InputManager } from '../core/input';
 
 export interface GameDeps {
   engine: AbstractEngine;
@@ -16,17 +19,20 @@ export interface GameDeps {
   settings: SettingsManager;
   loading: LoadingScreen;
   hud: Hud;
+  input: InputManager;
+  bus: DrivableBus;
   onQualityChange: () => void;
 }
 
 /**
- * Ties the engine, scene, render pipeline, settings and loop together.
- * Systems stay decoupled: physics, AI and networking will plug into the same
- * loop with their own modules without touching this class's shape.
+ * Ties the engine, scene, render pipeline, settings, vehicle and loop together.
+ * Systems stay decoupled: physics, AI and networking plug into the same loop
+ * without touching this class's shape.
  */
 export class Game {
   private readonly pipeline: RenderPipeline;
   private readonly loop: GameLoop;
+  private readonly followTarget = new Vector3();
 
   constructor(private readonly deps: GameDeps) {
     this.pipeline = new RenderPipeline({
@@ -39,9 +45,7 @@ export class Game {
 
     this.loop = new GameLoop(deps.engine, {
       render: (delta) => this.render(delta),
-      simulate: (_delta) => {
-        /* physics plugs in here in M1 */
-      },
+      simulate: (delta) => this.simulate(delta),
     });
   }
 
@@ -62,10 +66,25 @@ export class Game {
     this.deps.loading.hide();
   }
 
+  private simulate(dt: number): void {
+    const input = this.deps.input;
+    const steer =
+      (input.isDown('KeyA') || input.isDown('ArrowLeft') ? -1 : 0) +
+      (input.isDown('KeyD') || input.isDown('ArrowRight') ? 1 : 0);
+    this.deps.bus.simulate(dt, {
+      throttle: input.isDown('KeyW') || input.isDown('ArrowUp') ? 1 : 0,
+      brake: input.isDown('KeyS') || input.isDown('ArrowDown') ? 1 : 0,
+      steer: Math.max(-1, Math.min(1, steer)),
+      reverse: input.isDown('KeyR'),
+    });
+  }
+
   private render(deltaSeconds: number): void {
     this.pipeline.update(deltaSeconds);
+    this.followTarget.copyFrom(this.deps.bus.position).y += 2;
+    this.deps.sceneHandle.camera.setTarget(this.followTarget);
     this.deps.sceneHandle.scene.render();
-    this.deps.hud.frame(performance.now());
+    this.deps.hud.frame(performance.now(), this.deps.bus.speedKph);
   }
 
   dispose(): void {
