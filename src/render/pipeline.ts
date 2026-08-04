@@ -156,7 +156,10 @@ export class RenderPipeline {
 
     if (preset.ssaoEnabled) {
       try {
-        const ssao = new SSAO2RenderingPipeline('ssao', scene, 0.6, [camera], true);
+        // PrePassRenderer (not the WebGL2-only geometry buffer) so SSAO2
+        // works on WebGPU: forceGeometryBuffer=true leaves depth/normal
+        // samplers unbound there, crashing the bind-group cache.
+        const ssao = new SSAO2RenderingPipeline('ssao', scene, 0.6, [camera]);
         ssao.totalStrength = preset.ssaoTotalStrength;
         ssao.radius = preset.ssaoRadius;
         ssao.samples = preset.id === 'ultra' ? 16 : 8;
@@ -208,7 +211,7 @@ export class RenderPipeline {
 
     if (preset.ssrEnabled) {
       try {
-        const ssr = new SSRRenderingPipeline('ssr', scene, [camera], true);
+        const ssr = new SSRRenderingPipeline('ssr', scene, [camera]);
         manager.addPipeline(ssr);
         this.ssr = ssr;
       } catch (error) {
