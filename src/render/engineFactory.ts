@@ -23,6 +23,7 @@ const WEBGPU_OPTIONS = {
   antialias: true,
   stencil: true,
   powerPreference: 'high-performance',
+  setMaximumLimits: true,
 } as const;
 
 const WEBGL_OPTIONS = {
