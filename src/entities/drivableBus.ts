@@ -46,6 +46,10 @@ export class DrivableBus {
     return this.root.position;
   }
 
+  get heading(): number {
+    return this.state.heading;
+  }
+
   simulate(dt: number, input: VehicleInput): void {
     this.lastSteer = input.steer;
     stepVehicle(this.state, input, dt, this.config);

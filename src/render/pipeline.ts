@@ -1,5 +1,8 @@
 import type { AbstractEngine } from '@babylonjs/core/Engines/abstractEngine';
 import { Scene } from '@babylonjs/core/scene';
+// Babylon 9: LensFlareSystem's occlusion test calls scene.pick, which needs
+// Ray's side-effect registration imported before it is used.
+import '@babylonjs/core/Culling/ray';
 import type { Camera } from '@babylonjs/core/Cameras/camera';
 import type { Nullable } from '@babylonjs/core/types';
 import { Color3 } from '@babylonjs/core/Maths/math.color';

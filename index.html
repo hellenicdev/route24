@@ -37,7 +37,6 @@
       <div id="hud" class="hidden">
         <div class="hud-top-right">
           <div id="hud-stats" class="hud-stats">
-            <span id="hud-speed" class="hud-speed">0 km/h</span>
             <span id="hud-fps">-- fps</span>
             <span id="hud-ms">-- ms</span>
           </div>
@@ -45,6 +44,12 @@
             <span id="hud-renderer" class="hud-chip">–</span>
             <span id="hud-quality" class="hud-chip">–</span>
           </div>
+        </div>
+        <div id="hud-speed" class="speedo" aria-hidden="true">
+          <div class="speedo-dial">
+            <div id="hud-speed-needle" class="speedo-needle"></div>
+          </div>
+          <div class="speedo-value"><span id="hud-speed-value">0</span><small>km/h</small></div>
         </div>
         <button id="btn-settings" class="hud-button" type="button" aria-label="Graphics settings">
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

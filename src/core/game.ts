@@ -33,8 +33,14 @@ export class Game {
   private readonly pipeline: RenderPipeline;
   private readonly loop: GameLoop;
   private readonly followTarget = new Vector3();
+  private chaseAlpha = 0;
+  private readonly chaseBeta = 1.12;
+  private readonly chaseRadius = 15;
+  private readonly chaseSmoothing = 6;
 
   constructor(private readonly deps: GameDeps) {
+    // Mobile-sim style chase camera: start directly behind the bus.
+    this.chaseAlpha = deps.bus.heading + Math.PI;
     this.pipeline = new RenderPipeline({
       scene: deps.sceneHandle.scene,
       engine: deps.engine,
@@ -79,10 +85,28 @@ export class Game {
     });
   }
 
+  /** Shortest-arc angle difference into [-PI, PI]. */
+  private static wrapAngle(angle: number): number {
+    const tau = Math.PI * 2;
+    return ((((angle + Math.PI) % tau) + tau) % tau) - Math.PI;
+  }
+
+  /** Chase camera: smoothly orbits to stay behind the bus, like mobile sims. */
+  private updateChaseCamera(deltaSeconds: number): void {
+    const camera = this.deps.sceneHandle.camera;
+    const bus = this.deps.bus;
+    const k = 1 - Math.exp(-this.chaseSmoothing * deltaSeconds);
+    this.chaseAlpha += Game.wrapAngle(bus.heading + Math.PI - this.chaseAlpha) * k;
+    camera.alpha = this.chaseAlpha;
+    camera.beta = this.chaseBeta;
+    camera.radius = this.chaseRadius;
+    this.followTarget.set(bus.position.x, 2.2, bus.position.z);
+    camera.setTarget(this.followTarget);
+  }
+
   private render(deltaSeconds: number): void {
     this.pipeline.update(deltaSeconds);
-    this.followTarget.copyFrom(this.deps.bus.position).y += 2;
-    this.deps.sceneHandle.camera.setTarget(this.followTarget);
+    this.updateChaseCamera(deltaSeconds);
     this.deps.sceneHandle.scene.render();
     this.deps.hud.frame(performance.now(), this.deps.bus.speedKph);
   }
