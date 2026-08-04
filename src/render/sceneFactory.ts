@@ -109,7 +109,12 @@ function createSignTexture(scene: Scene, text: string, width = 512, height = 192
 function createAsphaltMaterial(scene: Scene): PBRMaterial {
   const material = new PBRMaterial('asphalt', scene);
   material.albedoColor = Color3.White();
-  material.albedoTexture = createTrackTexture(scene);
+  const albedo = createTrackTexture(scene);
+  // Linear space: Babylon 9.19's WebGPU geometry shader miscompiles the
+  // GAMMAALBEDO path (toLinearSpaceVec4 called with vec3), breaking the
+  // SSAO/SSR gBuffer pass. WebGL2 is unaffected by this flag.
+  albedo.gammaSpace = false;
+  material.albedoTexture = albedo;
   material.roughness = 0.92;
   material.metallic = 0;
   return material;
