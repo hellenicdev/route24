@@ -64,6 +64,7 @@ export class Game {
 
   private render(deltaSeconds: number): void {
     this.pipeline.update(deltaSeconds);
+    this.deps.sceneHandle.scene.render();
     this.deps.hud.frame(performance.now());
   }
 
