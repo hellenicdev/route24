@@ -90,8 +90,9 @@ export class RenderPipeline {
       csm.stabilizeCascades = true;
       csm.cascadeBlendPercentage = 0.18;
       csm.setMinMaxDistance(0, 160);
+      // CSM only supports FILTER_NONE / FILTER_PCF / FILTER_PCSS; poisson
+      // would fall back to no filtering at all.
       csm.usePercentageCloserFiltering = preset.shadowPcf;
-      csm.usePoissonSampling = true;
 
       // Meshes opt into casting shadows by setting metadata.castsShadow.
       for (const mesh of scene.meshes) {
