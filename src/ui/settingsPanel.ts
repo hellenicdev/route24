@@ -1,4 +1,5 @@
 import type { QualityId, RendererPreference, SettingsManager } from '../core/settings';
+import type { WeatherId } from '../data/weatherConfig';
 import { QUALITY_PRESETS, resolveQualityId } from '../data/qualityPresets';
 import { byId } from './dom';
 
@@ -16,6 +17,7 @@ export interface SettingsPanelDeps {
 export class SettingsPanel {
   private readonly qualitySelect = byId<HTMLSelectElement>('setting-quality');
   private readonly rendererSelect = byId<HTMLSelectElement>('setting-renderer');
+  private readonly weatherSelect = byId<HTMLSelectElement>('setting-weather');
   private readonly rescale = byId<HTMLInputElement>('setting-rescale');
   private readonly rescaleValue = byId<HTMLSpanElement>('setting-rescale-value');
   private readonly vsync = byId<HTMLInputElement>('setting-vsync');
@@ -51,6 +53,7 @@ export class SettingsPanel {
     const s = this.deps.settings.settings;
     this.qualitySelect.value = s.quality;
     this.rendererSelect.value = s.renderer;
+    this.weatherSelect.value = s.weather;
     this.rescale.value = String(Math.round(s.resolutionScale * 100));
     this.rescaleValue.textContent = `${Math.round(s.resolutionScale * 100)}%`;
     this.vsync.checked = s.vsync;
@@ -66,6 +69,11 @@ export class SettingsPanel {
     this.rendererSelect.addEventListener('change', () => {
       this.deps.settings.update({ renderer: this.rendererSelect.value as RendererPreference });
       this.note.classList.remove('hidden');
+    });
+
+    this.weatherSelect.addEventListener('change', () => {
+      this.deps.settings.update({ weather: this.weatherSelect.value as WeatherId });
+      this.deps.onChanged();
     });
 
     this.rescale.addEventListener('input', () => {

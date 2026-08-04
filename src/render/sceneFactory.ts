@@ -10,14 +10,17 @@ import { PBRMaterial } from '@babylonjs/core/Materials/PBR/pbrMaterial';
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial';
 import { DynamicTexture } from '@babylonjs/core/Materials/Textures/dynamicTexture';
 import { SkyMaterial } from '@babylonjs/materials/sky/skyMaterial';
-import { ReflectionProbe } from '@babylonjs/core/Probes/reflectionProbe';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
+import { createCity } from './cityFactory';
 
 export interface SceneHandle {
   scene: Scene;
   camera: ArcRotateCamera;
   sun: DirectionalLight;
   sunMesh: Mesh;
+  hemi: HemisphericLight;
+  sky: SkyMaterial;
+  ground: Mesh;
 }
 
 export interface SceneFactoryOptions {
@@ -27,8 +30,8 @@ export interface SceneFactoryOptions {
 
 const TRACK_RADIUS = 150;
 const TRACK_LANE_WIDTH = 15;
-const GROUND_SIZE = 340;
-const GROUND_SUBDIVISIONS = 96;
+const GROUND_SIZE = 460;
+const GROUND_SUBDIVISIONS = 128;
 const SKY_DOME_RADIUS = 4000;
 
 /**
@@ -183,47 +186,6 @@ function createStreetlight(scene: Scene, theta: number, radius: number): Mesh {
   return root;
 }
 
-function createShowcaseObjects(scene: Scene, probe: ReflectionProbe): void {
-  const paintMat = new PBRMaterial('paint-showcase', scene);
-  paintMat.albedoColor = new Color3(0.62, 0.06, 0.09);
-  paintMat.metallic = 0.25;
-  paintMat.roughness = 0.28;
-  paintMat.clearCoat.isEnabled = true;
-  paintMat.clearCoat.intensity = 1;
-  paintMat.clearCoat.roughness = 0.12;
-
-  const sphere = MeshBuilder.CreateSphere('paint-demo', { diameter: 5, segments: 48 }, scene);
-  sphere.position = new Vector3(12, 2.5, 2);
-  sphere.material = paintMat;
-  sphere.metadata = { castsShadow: true };
-  sphere.receiveShadows = true;
-
-  const glassMat = new PBRMaterial('glass-showcase', scene);
-  glassMat.albedoColor = new Color3(0.05, 0.06, 0.08);
-  glassMat.metallic = 1;
-  glassMat.roughness = 0.05;
-
-  const glassBox = MeshBuilder.CreateBox('glass-demo', { size: 5 }, scene);
-  glassBox.position = new Vector3(-14, 2.5, 8);
-  glassBox.material = glassMat;
-  glassBox.metadata = { castsShadow: true };
-  glassBox.receiveShadows = true;
-
-  const matteMat = new PBRMaterial('matte-showcase', scene);
-  matteMat.albedoColor = new Color3(0.85, 0.83, 0.78);
-  matteMat.roughness = 1;
-  matteMat.metallic = 0;
-
-  const matteBox = MeshBuilder.CreateBox('matte-demo', { width: 4, height: 4, depth: 4 }, scene);
-  matteBox.position = new Vector3(0, 2, 16);
-  matteBox.material = matteMat;
-  matteBox.metadata = { castsShadow: true };
-  matteBox.receiveShadows = true;
-
-  probe.attachToMesh(sphere);
-  probe.renderList = [sphere, glassBox, matteBox];
-}
-
 function createRouteSign(scene: Scene): Mesh {
   const signMat = new PBRMaterial('route-sign', scene);
   signMat.albedoColor = new Color3(0.05, 0.06, 0.09);
@@ -313,21 +275,17 @@ export function createM0Scene(engine: AbstractEngine, options: SceneFactoryOptio
   ground.receiveShadows = true;
 
   // Curbs + streetlights around the loop.
-  const CUB_COUNT = 40;
+  const CUB_COUNT = 48;
   for (let i = 0; i < CUB_COUNT; i++) {
     createCurbMesh(scene, (i / CUB_COUNT) * Math.PI * 2, 3.2);
   }
-  const LIGHT_COUNT = 12;
+  const LIGHT_COUNT = 16;
   for (let i = 0; i < LIGHT_COUNT; i++) {
     createStreetlight(scene, (i / LIGHT_COUNT) * Math.PI * 2, TRACK_RADIUS + 30);
   }
 
   createRouteSign(scene);
+  createCity(scene, TRACK_RADIUS);
 
-  // Reflection probe over the showcase objects (reflection for the paint).
-  const probe = new ReflectionProbe('probe', 128, scene);
-  probe.refreshRate = 2;
-  createShowcaseObjects(scene, probe);
-
-  return { scene, camera, sun, sunMesh };
+  return { scene, camera, sun, sunMesh, hemi, sky: skyMaterial, ground };
 }

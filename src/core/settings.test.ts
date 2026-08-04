@@ -27,9 +27,10 @@ describe('sanitizeSettings', () => {
   });
 
   it('rejects unknown enum values', () => {
-    const result = sanitizeSettings({ quality: 'mega', renderer: 'd3d12' });
+    const result = sanitizeSettings({ quality: 'mega', renderer: 'd3d12', weather: 'monsoon' });
     expect(result.quality).toBe(DEFAULT_SETTINGS.quality);
     expect(result.renderer).toBe(DEFAULT_SETTINGS.renderer);
+    expect(result.weather).toBe(DEFAULT_SETTINGS.weather);
   });
 
   it('accepts valid values and clamps the resolution scale', () => {
@@ -39,10 +40,12 @@ describe('sanitizeSettings', () => {
       resolutionScale: 7,
       vsync: false,
       showFrameStats: false,
+      weather: 'rain',
     });
     expect(result.renderer).toBe('webgpu');
     expect(result.quality).toBe('ultra');
     expect(result.resolutionScale).toBe(2);
+    expect(result.weather).toBe('rain');
   });
 });
 

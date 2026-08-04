@@ -1,4 +1,5 @@
 import { EventEmitter } from './events';
+import { WEATHER_IDS, type WeatherId } from '../data/weatherConfig';
 
 /** Quality tiers exposed to the user. 'auto' resolves to a concrete preset. */
 export type QualityId = 'auto' | 'low' | 'medium' | 'high' | 'ultra';
@@ -12,6 +13,7 @@ export interface Settings {
   resolutionScale: number;
   vsync: boolean;
   showFrameStats: boolean;
+  weather: WeatherId;
 }
 
 export interface SettingsEvents {
@@ -26,6 +28,7 @@ export const DEFAULT_SETTINGS: Readonly<Settings> = {
   resolutionScale: 1,
   vsync: true,
   showFrameStats: true,
+  weather: 'clear',
 };
 
 export const QUALITY_IDS: readonly QualityId[] = ['auto', 'low', 'medium', 'high', 'ultra'];
@@ -64,6 +67,10 @@ export function sanitizeSettings(raw: unknown): Settings {
       typeof source.showFrameStats === 'boolean'
         ? source.showFrameStats
         : DEFAULT_SETTINGS.showFrameStats,
+    weather:
+      typeof source.weather === 'string' && WEATHER_IDS.includes(source.weather as WeatherId)
+        ? (source.weather as WeatherId)
+        : DEFAULT_SETTINGS.weather,
   };
 }
 

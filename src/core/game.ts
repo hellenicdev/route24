@@ -3,6 +3,7 @@ import { Vector3 } from '@babylonjs/core/Maths/math.vector';
 import type { RendererKind } from '../render/engineFactory';
 import type { SceneHandle } from '../render/sceneFactory';
 import { RenderPipeline } from '../render/pipeline';
+import { WeatherManager } from '../render/weather';
 import { resolveQualityId } from '../data/qualityPresets';
 import { QUALITY_PRESETS } from '../data/qualityPresets';
 import { GameLoop } from '../core/loop';
@@ -31,6 +32,7 @@ export interface GameDeps {
  */
 export class Game {
   private readonly pipeline: RenderPipeline;
+  private readonly weather: WeatherManager;
   private readonly loop: GameLoop;
   private readonly followTarget = new Vector3();
   private chaseAlpha = 0;
@@ -48,6 +50,14 @@ export class Game {
       sun: deps.sceneHandle.sun,
       sunMesh: deps.sceneHandle.sunMesh,
     });
+    this.weather = new WeatherManager({
+      scene: deps.sceneHandle.scene,
+      camera: deps.sceneHandle.camera,
+      sun: deps.sceneHandle.sun,
+      hemi: deps.sceneHandle.hemi,
+      sky: deps.sceneHandle.sky,
+      ground: deps.sceneHandle.ground,
+    });
 
     this.loop = new GameLoop(deps.engine, {
       render: (delta) => this.render(delta),
@@ -63,6 +73,7 @@ export class Game {
   applySettings(): void {
     const preset = QUALITY_PRESETS[resolveQualityId(this.deps.settings.settings.quality)];
     this.pipeline.applyQuality(preset, this.deps.settings.settings.resolutionScale);
+    this.weather.apply(this.deps.settings.settings.weather);
     this.deps.hud.setQuality(this.qualityLabel);
   }
 
@@ -114,6 +125,7 @@ export class Game {
   dispose(): void {
     this.loop.dispose();
     this.pipeline.dispose();
+    this.weather.dispose();
     this.deps.sceneHandle.scene.dispose();
   }
 }
