@@ -110,6 +110,8 @@ export function createBusRig(scene: Scene, config: BusConfig): BusRig {
   const wheelY = config.wheelRadius;
 
   const body = createBusMaterial(scene, 'bus-body', new Color3(0.93, 0.88, 0.78), 0.45);
+  body.anisotropy.isEnabled = true;
+  body.anisotropy.intensity = 0.35;
   const skirt = createBusMaterial(scene, 'bus-skirt', new Color3(0.72, 0.22, 0.16), 0.6);
   const glass = createBusMaterial(scene, 'bus-glass', new Color3(0.05, 0.06, 0.08), 0.12);
   glass.clearCoat.isEnabled = true;

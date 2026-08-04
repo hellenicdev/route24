@@ -48,6 +48,14 @@ describe('quality presets', () => {
       'ssrEnabled',
       'volumetricEnabled',
       'glowEnabled',
+      'vignetteEnabled',
+      'grainEnabled',
+      'sharpenEnabled',
+      'motionBlurEnabled',
+      'chromaticAberrationEnabled',
+      'colorGradingEnabled',
+      'lensFlareEnabled',
+      'depthOfFieldEnabled',
     ] as const;
     for (const key of flagKeys) {
       for (let i = 1; i < order.length; i++) {

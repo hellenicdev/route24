@@ -10,8 +10,12 @@ import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPi
 import { SSAO2RenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssao2RenderingPipeline';
 import { SSRRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/ssrRenderingPipeline';
 import { TAARenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/taaRenderingPipeline';
+import { MotionBlurPostProcess } from '@babylonjs/core/PostProcesses/motionBlurPostProcess';
+import { ChromaticAberrationPostProcess } from '@babylonjs/core/PostProcesses/chromaticAberrationPostProcess';
 import { VolumetricLightScatteringPostProcess } from '@babylonjs/core/PostProcesses/volumetricLightScatteringPostProcess';
 import { GlowLayer } from '@babylonjs/core/Layers/glowLayer';
+import { LensFlareSystem } from '@babylonjs/core/LensFlares/lensFlareSystem';
+import { LensFlare } from '@babylonjs/core/LensFlares/lensFlare';
 import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration';
 import { Texture } from '@babylonjs/core/Materials/Textures/texture';
 import type { Mesh } from '@babylonjs/core/Meshes/mesh';
@@ -40,8 +44,11 @@ export class RenderPipeline {
   private ssao: Nullable<SSAO2RenderingPipeline> = null;
   private ssr: Nullable<SSRRenderingPipeline> = null;
   private taa: Nullable<TAARenderingPipeline> = null;
+  private motionBlur: Nullable<MotionBlurPostProcess> = null;
+  private chromaticAberration: Nullable<ChromaticAberrationPostProcess> = null;
   private volumetric: Nullable<VolumetricLightScatteringPostProcess> = null;
   private glow: Nullable<GlowLayer> = null;
+  private lensFlare: Nullable<LensFlareSystem> = null;
   private csm: Nullable<CascadedShadowGenerator> = null;
 
   /** Smoothed exposure value applied to the image processing configuration. */
@@ -73,6 +80,8 @@ export class RenderPipeline {
     this.applyPostEffects(preset);
     this.applyGlow(preset);
     this.applyVolumetric(preset);
+    this.applyColorGrading(preset);
+    this.applyLensFlare(preset);
     this.applyFog(preset);
     this.applyResolutionScale(preset.resolutionScale * userResolutionScale);
   }
@@ -118,6 +127,19 @@ export class RenderPipeline {
     defaultPipeline.sharpenEnabled = false;
     defaultPipeline.grainEnabled = false;
     defaultPipeline.depthOfFieldEnabled = preset.depthOfFieldEnabled;
+    if (preset.depthOfFieldEnabled) {
+      // DoF focus distance uses scene units * 1000 (millimeter convention);
+      // the follow camera orbits ~22 m behind the bus.
+      defaultPipeline.depthOfField.focusDistance = 22000;
+      defaultPipeline.depthOfField.fStop = 2.2;
+    }
+    defaultPipeline.grainEnabled = preset.grainEnabled;
+    defaultPipeline.grain.intensity = preset.grainIntensity;
+    defaultPipeline.sharpenEnabled = preset.sharpenEnabled;
+    defaultPipeline.sharpen.colorAmount = preset.sharpenAmount;
+    const ipc = this.scene.imageProcessingConfiguration;
+    ipc.vignetteEnabled = preset.vignetteEnabled;
+    ipc.vignetteWeight = preset.vignetteWeight;
     manager.addPipeline(defaultPipeline);
     this.defaultPipeline = defaultPipeline;
 
@@ -150,6 +172,34 @@ export class RenderPipeline {
         this.taa = taa;
       } catch (error) {
         console.warn('[pipeline] TAA unavailable:', error);
+      }
+    }
+
+    if (preset.motionBlurEnabled) {
+      try {
+        const motionBlur = new MotionBlurPostProcess('motionBlur', this.scene, 1, camera);
+        motionBlur.motionBlurSamples = preset.id === 'ultra' ? 16 : 8;
+        motionBlur.motionStrength = preset.motionBlurStrength;
+        this.motionBlur = motionBlur;
+      } catch (error) {
+        console.warn('[pipeline] motion blur unavailable:', error);
+      }
+    }
+
+    if (preset.chromaticAberrationEnabled) {
+      try {
+        const chromatic = new ChromaticAberrationPostProcess(
+          'chromaticAberration',
+          this.engine.getRenderWidth(),
+          this.engine.getRenderHeight(),
+          1,
+          camera,
+        );
+        chromatic.aberrationAmount = preset.chromaticAberrationAmount;
+        chromatic.radialIntensity = 1;
+        this.chromaticAberration = chromatic;
+      } catch (error) {
+        console.warn('[pipeline] chromatic aberration unavailable:', error);
       }
     }
 
@@ -203,6 +253,49 @@ export class RenderPipeline {
     }
   }
 
+  /** Film-grade color curves (warm highlights, lifted shadows). */
+  private applyColorGrading(preset: QualityPreset): void {
+    const ipc = this.scene.imageProcessingConfiguration;
+    ipc.colorCurvesEnabled = preset.colorGradingEnabled;
+    if (!preset.colorGradingEnabled) return;
+    const curves = ipc.colorCurves;
+    if (!curves) return;
+    curves.globalSaturation = 8;
+    curves.globalExposure = 2;
+    curves.shadowsExposure = 5;
+    curves.highlightsExposure = -5;
+  }
+
+  /** Anamorphic-style lens flares from the sun mesh. */
+  private applyLensFlare(preset: QualityPreset): void {
+    if (!preset.lensFlareEnabled) return;
+    try {
+      const { scene, sunMesh } = this.deps;
+      const canvas = document.createElement('canvas');
+      canvas.width = 64;
+      canvas.height = 64;
+      const ctx = canvas.getContext('2d');
+      let textureUrl = '';
+      if (ctx) {
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255,255,255,1)');
+        gradient.addColorStop(0.35, 'rgba(255,255,255,0.85)');
+        gradient.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+        textureUrl = canvas.toDataURL('image/png');
+      }
+
+      const flare = new LensFlareSystem('lensFlare', sunMesh, scene);
+      LensFlare.AddFlare(0.35, 0, new Color3(1, 0.95, 0.85), textureUrl, flare);
+      LensFlare.AddFlare(0.1, 0.55, new Color3(0.95, 0.7, 0.5), textureUrl, flare);
+      LensFlare.AddFlare(0.07, -0.7, new Color3(0.65, 0.8, 1), textureUrl, flare);
+      this.lensFlare = flare;
+    } catch (error) {
+      console.warn('[pipeline] lens flare unavailable:', error);
+    }
+  }
+
   private applyFog(preset: QualityPreset): void {
     const scene = this.scene;
     if (!preset.fogEnabled) {
@@ -237,15 +330,24 @@ export class RenderPipeline {
     this.ssao?.dispose();
     this.ssr?.dispose();
     this.taa?.dispose();
+    this.motionBlur?.dispose();
+    this.chromaticAberration?.dispose();
     this.volumetric?.dispose(this.deps.camera);
     this.glow?.dispose();
+    this.lensFlare?.dispose();
     this.csm?.dispose();
+    const ipc = this.scene.imageProcessingConfiguration;
+    ipc.vignetteEnabled = false;
+    ipc.colorCurvesEnabled = false;
     this.defaultPipeline = null;
     this.ssao = null;
     this.ssr = null;
     this.taa = null;
+    this.motionBlur = null;
+    this.chromaticAberration = null;
     this.volumetric = null;
     this.glow = null;
+    this.lensFlare = null;
     this.csm = null;
   }
 

@@ -26,6 +26,19 @@ export interface QualityPreset {
   volumetricEnabled: boolean;
   glowEnabled: boolean;
   glowIntensity: number;
+  // Post-process polish
+  vignetteEnabled: boolean;
+  vignetteWeight: number;
+  grainEnabled: boolean;
+  grainIntensity: number;
+  sharpenEnabled: boolean;
+  sharpenAmount: number;
+  motionBlurEnabled: boolean;
+  motionBlurStrength: number;
+  chromaticAberrationEnabled: boolean;
+  chromaticAberrationAmount: number;
+  colorGradingEnabled: boolean;
+  lensFlareEnabled: boolean;
   // Environment
   fogEnabled: boolean;
   fogDensity: number;
@@ -55,6 +68,18 @@ export const QUALITY_PRESETS: Record<Exclude<QualityId, 'auto'>, QualityPreset> 
     volumetricEnabled: false,
     glowEnabled: false,
     glowIntensity: 0.5,
+    vignetteEnabled: false,
+    vignetteWeight: 1.2,
+    grainEnabled: false,
+    grainIntensity: 0.1,
+    sharpenEnabled: false,
+    sharpenAmount: 0.3,
+    motionBlurEnabled: false,
+    motionBlurStrength: 0.6,
+    chromaticAberrationEnabled: false,
+    chromaticAberrationAmount: 0.25,
+    colorGradingEnabled: false,
+    lensFlareEnabled: false,
     fogEnabled: true,
     fogDensity: 0.0035,
     reflectionProbe: false,
@@ -81,6 +106,18 @@ export const QUALITY_PRESETS: Record<Exclude<QualityId, 'auto'>, QualityPreset> 
     volumetricEnabled: false,
     glowEnabled: false,
     glowIntensity: 0.5,
+    vignetteEnabled: true,
+    vignetteWeight: 1.2,
+    grainEnabled: false,
+    grainIntensity: 0.12,
+    sharpenEnabled: false,
+    sharpenAmount: 0.35,
+    motionBlurEnabled: false,
+    motionBlurStrength: 0.6,
+    chromaticAberrationEnabled: false,
+    chromaticAberrationAmount: 0.25,
+    colorGradingEnabled: false,
+    lensFlareEnabled: false,
     fogEnabled: true,
     fogDensity: 0.0028,
     reflectionProbe: true,
@@ -107,6 +144,18 @@ export const QUALITY_PRESETS: Record<Exclude<QualityId, 'auto'>, QualityPreset> 
     volumetricEnabled: true,
     glowEnabled: true,
     glowIntensity: 0.35,
+    vignetteEnabled: true,
+    vignetteWeight: 1.6,
+    grainEnabled: true,
+    grainIntensity: 0.14,
+    sharpenEnabled: true,
+    sharpenAmount: 0.4,
+    motionBlurEnabled: true,
+    motionBlurStrength: 0.55,
+    chromaticAberrationEnabled: false,
+    chromaticAberrationAmount: 0.25,
+    colorGradingEnabled: true,
+    lensFlareEnabled: true,
     fogEnabled: true,
     fogDensity: 0.0025,
     reflectionProbe: true,
@@ -133,6 +182,18 @@ export const QUALITY_PRESETS: Record<Exclude<QualityId, 'auto'>, QualityPreset> 
     volumetricEnabled: true,
     glowEnabled: true,
     glowIntensity: 0.6,
+    vignetteEnabled: true,
+    vignetteWeight: 2,
+    grainEnabled: true,
+    grainIntensity: 0.2,
+    sharpenEnabled: true,
+    sharpenAmount: 0.5,
+    motionBlurEnabled: true,
+    motionBlurStrength: 0.75,
+    chromaticAberrationEnabled: true,
+    chromaticAberrationAmount: 0.25,
+    colorGradingEnabled: true,
+    lensFlareEnabled: true,
     fogEnabled: true,
     fogDensity: 0.002,
     reflectionProbe: true,
