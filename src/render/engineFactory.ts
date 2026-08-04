@@ -3,6 +3,15 @@ import { Engine } from '@babylonjs/core/Engines/engine';
 import { WebGPUEngine } from '@babylonjs/core/Engines/webgpuEngine';
 import type { RendererPreference } from '../core/settings';
 
+// Babylon v9 registers engine prototype methods (dynamic/render-target textures,
+// cube/raw textures, etc.) via opt-in "Register" side effects. Without these
+// calls, tree-shaken builds crash at runtime (e.g. createDynamicTexture missing).
+import { RegisterFullEngineExtensions } from '@babylonjs/core/Engines/engineRegistration.pure';
+import { RegisterFullWebGPUEngineExtensions } from '@babylonjs/core/Engines/WebGPU/webgpuEngineRegistration.pure';
+
+RegisterFullEngineExtensions();
+RegisterFullWebGPUEngineExtensions();
+
 export type RendererKind = 'webgpu' | 'webgl2';
 
 export interface EngineHandle {
