@@ -18,14 +18,34 @@ physics with Havok, TypeScript throughout.
 - Loading screen, HUD (FPS / renderer / quality), error screen
 - CI/CD: lint, typecheck, tests, build and auto-deploy to GitHub Pages
 
-## Development
+## Run locally
+
+Requires Node.js 20 or newer.
 
 ```sh
+git clone https://github.com/hellenicdev/route24.git
+cd route24
 npm install
 npm run dev
 ```
 
-See `AGENTS.md` for the full command list and conventions.
+| Command                              | What it does                                            |
+| ------------------------------------ | ------------------------------------------------------- |
+| `npm run dev`                        | Start the Vite dev server                               |
+| `npm run build`                      | Production build into `dist/` (served from `/route24/`) |
+| `npm run preview`                    | Preview the production build                            |
+| `npm run lint` / `npm run typecheck` | ESLint and TypeScript checks                            |
+| `npm test`                           | Unit tests (Vitest)                                     |
+| `npm run format`                     | Format with Prettier                                    |
+
+See `AGENTS.md` for conventions.
+
+## Tech
+
+- [Babylon.js](https://www.babylonjs.com/) 9 (WebGPU first, WebGL 2 fallback)
+- Havok physics (planned for M1)
+- TypeScript, Vite, Vitest, ESLint and Prettier
+- GitHub Actions CI and GitHub Pages hosting
 
 ## Roadmap
 
@@ -38,3 +58,11 @@ See `AGENTS.md` for the full command list and conventions.
 5. M5 — Audio world pass
 6. M6 — Backend (Render + MongoDB): accounts, cloud saves, stats, leaderboards
 7. M7 — Multiplayer (WebSocket)
+
+## License
+
+No license has been chosen yet, so all rights are reserved by the author for now.
+
+## Credits
+
+Made by [HellenicDev](https://hellenicdev.eu). More projects at <https://hellenicdev.eu>.
